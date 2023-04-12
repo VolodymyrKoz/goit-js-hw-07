@@ -70,3 +70,8 @@ const onGalleryItemClick = (event) => {
 };
 
 galleryList.addEventListener("click", onGalleryItemClick);
+
+const galleryImage = document.querySelector(".gallery__image");
+galleryImage.addEventListener("click", () => {
+  lightbox.show();
+});
