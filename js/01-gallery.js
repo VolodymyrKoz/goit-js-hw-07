@@ -13,65 +13,35 @@ const createGalleryItem = ({ preview, original, description }) => `
 
 galleryList.innerHTML = galleryItems.map(createGalleryItem).join("");
 
-// Initialize BasicLightbox
+// Initialize BasicLightbox for each image
+const instances = galleryItems.map(({ original }) =>
+  basicLightbox.create(`
+    <img src="${original}" width="800" height="600">
+  `)
+);
+
+// Show corresponding instance when image is clicked
+galleryList.addEventListener("click", (event) => {
+  event.preventDefault();
+  const { target } = event;
+  if (target.classList.contains("gallery__image")) {
+    const index = Array.from(target.parentNode.parentNode.children).indexOf(
+      target.parentNode
+    );
+    instances[index].show();
+    document.addEventListener("keydown", (event) =>
+      onEscPress(event, instances[index])
+    );
+  }
+});
+
+// Close instance on Esc key press
 const onEscPress = (event, instance) => {
   const ESC_KEYCODE = "Escape";
   if (event.code === ESC_KEYCODE) {
     instance.close();
+    document.removeEventListener("keydown", (event) =>
+      onEscPress(event, instance)
+    );
   }
 };
-
-const lightbox = basicLightbox.create(
-  `
-  <div class="lightbox">
-    <div class="lightbox__content">
-      <img class="lightbox__image" src="" alt="" />
-    </div>
-  </div>
-`,
-  {
-    onShow: (instance) => {
-      // Close lightbox on overlay click
-      const overlay = instance.element().querySelector(".lightbox__overlay");
-      overlay.addEventListener("click", instance.close);
-
-      // Close lightbox on ESC press
-      document.addEventListener("keydown", (event) =>
-        onEscPress(event, instance)
-      );
-    },
-    onClose: (instance) => {
-      // Remove event listeners
-      const overlay = instance.element().querySelector(".lightbox__overlay");
-      overlay.removeEventListener("click", instance.close);
-      document.removeEventListener("keydown", (event) =>
-        onEscPress(event, instance)
-      );
-
-      // Clear image source and alt text
-      const lightboxImg = instance.element().querySelector(".lightbox__image");
-      lightboxImg.src = "";
-      lightboxImg.alt = "";
-    },
-  }
-);
-
-// Open lightbox on image click
-const onGalleryItemClick = (event) => {
-  event.preventDefault();
-  if (event.target.nodeName !== "IMG") return;
-
-  const imgSrc = event.target.parentNode.href;
-  const imgAlt = event.target.alt;
-
-  lightbox.element().querySelector(".lightbox__image").src = imgSrc;
-  lightbox.element().querySelector(".lightbox__image").alt = imgAlt;
-  lightbox.show();
-};
-
-galleryList.addEventListener("click", onGalleryItemClick);
-
-const galleryImage = document.querySelector(".gallery__image");
-galleryImage.addEventListener("click", () => {
-  lightbox.show();
-});
